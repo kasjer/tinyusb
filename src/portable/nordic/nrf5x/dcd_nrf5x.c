@@ -24,6 +24,12 @@
  * This file is part of the TinyUSB stack.
  */
 
+#if MYNEWT
+#include <hal/hal_gpio.h>
+#include <bsp/bsp.h>
+#else
+#define hal_gpio_write(a, b)
+#endif
 #include "tusb_option.h"
 
 #if TUSB_OPT_DEVICE_ENABLED && CFG_TUSB_MCU == OPT_MCU_NRF5X
@@ -125,6 +131,7 @@ static inline xfer_td_t* get_td(uint8_t epnum, uint8_t dir)
 }
 
 /*------------- CBI OUT Transfer -------------*/
+extern int console_out_nolock(int);
 
 // Prepare for a CBI transaction OUT, call at the start
 // Allow ACK incoming data
@@ -139,6 +146,8 @@ static void xact_out_prepare(uint8_t epnum)
     // Write zero value to SIZE register will allow hw to ACK (accept data)
     // If it is not already done by DMA
     NRF_USBD->SIZE.EPOUT[epnum] = 0;
+    console_out_nolock('o');
+    console_out_nolock('0' + epnum);
   }
 
   __ISB(); __DSB();
@@ -154,6 +163,8 @@ static void xact_out_dma(uint8_t epnum)
   // Trigger DMA move data from Endpoint -> SRAM
   NRF_USBD->EPOUT[epnum].PTR    = (uint32_t) xfer->buffer;
   NRF_USBD->EPOUT[epnum].MAXCNT = xact_len;
+    console_out_nolock('d');
+    console_out_nolock('0' + epnum);
 
   edpt_dma_start(&NRF_USBD->TASKS_STARTEPOUT[epnum]);
 
@@ -174,6 +185,8 @@ static void xact_in_prepare(uint8_t epnum)
 
   NRF_USBD->EPIN[epnum].PTR    = (uint32_t) xfer->buffer;
   NRF_USBD->EPIN[epnum].MAXCNT = xact_len;
+    console_out_nolock('i');
+    console_out_nolock('0' + epnum);
 
   xfer->buffer += xact_len;
 
@@ -311,6 +324,8 @@ void dcd_edpt_stall (uint8_t rhport, uint8_t ep_addr)
 {
   (void) rhport;
 
+  console_out_nolock('s');
+  console_out_nolock('0' + ep_addr);
   if ( tu_edpt_number(ep_addr) == 0 )
   {
     NRF_USBD->TASKS_EP0STALL = 1;
@@ -326,6 +341,8 @@ void dcd_edpt_clear_stall (uint8_t rhport, uint8_t ep_addr)
 {
   (void) rhport;
 
+    console_out_nolock('u');
+    console_out_nolock('0' + ep_addr);
   if ( tu_edpt_number(ep_addr)  )
   {
     // clear stall
@@ -357,11 +374,14 @@ void bus_reset(void)
   _dcd.xfer[0][TUSB_DIR_OUT].mps = MAX_PACKET_SIZE;
 }
 
+int console_out_nolock(int);
+
 void USBD_IRQHandler(void)
 {
   uint32_t const inten  = NRF_USBD->INTEN;
   uint32_t int_status = 0;
 
+  hal_gpio_write(ARDUINO_PIN_D0, 1);
   volatile uint32_t* regevt = &NRF_USBD->EVENTS_USBRESET;
 
   for(uint8_t i=0; i<USBD_INTEN_EPDATA_Pos+1; i++)
@@ -375,6 +395,18 @@ void USBD_IRQHandler(void)
       __ISB(); __DSB();
     }
   }
+
+    {
+        uint32_t s = int_status;
+        int n = 0;
+        while (s) {
+            int n1 = __builtin_ctz(s);
+            console_out_nolock('A' + n + n1);
+            n1++;
+            s >>= n1;
+            n += n1;
+        }
+    }
 
   if ( int_status & USBD_INTEN_USBRESET_Msk )
   {
@@ -480,13 +512,17 @@ void USBD_IRQHandler(void)
       if ( (xact_len == xfer->mps) && (xfer->actual_len < xfer->total_len) )
       {
         // Prepare for next transaction
+          hal_gpio_write(ARDUINO_PIN_D2, 1);
         xact_out_prepare(epnum);
+          hal_gpio_write(ARDUINO_PIN_D2, 0);
       }else
       {
         xfer->total_len = xfer->actual_len;
 
         // CBI OUT complete
+          hal_gpio_write(ARDUINO_PIN_D2, 1);
         dcd_event_xfer_complete(0, epnum, xfer->actual_len, XFER_RESULT_SUCCESS, true);
+          hal_gpio_write(ARDUINO_PIN_D2, 0);
       }
     }
 
@@ -546,6 +582,7 @@ void USBD_IRQHandler(void)
       }
     }
   }
+  hal_gpio_write(ARDUINO_PIN_D0, 0);
 }
 
 //--------------------------------------------------------------------+

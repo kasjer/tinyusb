@@ -24,6 +24,12 @@
  * This file is part of the TinyUSB stack.
  */
 
+#if MYNEWT
+#include <hal/hal_gpio.h>
+#include <bsp/bsp.h>
+#else
+#define hal_gpio_write(a, b)
+#endif
 #include "tusb_option.h"
 
 #if TUSB_OPT_DEVICE_ENABLED
@@ -357,8 +363,10 @@ void tud_task (void)
   {
     dcd_event_t event;
 
+    hal_gpio_write(ARDUINO_PIN_D1, 0);
     if ( !osal_queue_receive(_usbd_q, &event) ) return;
 
+    hal_gpio_write(ARDUINO_PIN_D1, 1);
     TU_LOG2("USBD: event %s\r\n", event.event_id < DCD_EVENT_COUNT ? _usbd_event_str[event.event_id] : "CORRUPTED");
 
     switch ( event.event_id )
@@ -375,6 +383,7 @@ void tud_task (void)
       break;
 
       case DCD_EVENT_SETUP_RECEIVED:
+          hal_gpio_write(ARDUINO_PIN_D3, 1);
         TU_LOG2("  ");
         TU_LOG1_MEM(&event.setup_received, 1, 8);
 
@@ -390,10 +399,12 @@ void tud_task (void)
           dcd_edpt_stall(event.rhport, 0);
           dcd_edpt_stall(event.rhport, 0 | TUSB_DIR_IN_MASK);
         }
+        hal_gpio_write(ARDUINO_PIN_D3, 0);
       break;
 
       case DCD_EVENT_XFER_COMPLETE:
       {
+          hal_gpio_write(ARDUINO_PIN_D4, 1);
         // Invoke the class callback associated with the endpoint address
         uint8_t const ep_addr = event.xfer_complete.ep_addr;
         uint8_t const epnum   = tu_edpt_number(ep_addr);
@@ -417,6 +428,7 @@ void tud_task (void)
           _usbd_driver[drv_id].xfer_cb(event.rhport, ep_addr, event.xfer_complete.result, event.xfer_complete.len);
         }
       }
+        hal_gpio_write(ARDUINO_PIN_D4, 0);
       break;
 
       case DCD_EVENT_SUSPEND:
