@@ -374,6 +374,13 @@ bool dcd_edpt_xfer (uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t 
                             ((total_bytes & USB_OTG_DIEPTSIZ_XFRSIZ_Msk) << USB_OTG_DIEPTSIZ_XFRSIZ_Pos);
 
     in_ep[epnum].DIEPCTL |= USB_OTG_DIEPCTL_EPENA | USB_OTG_DIEPCTL_CNAK;
+    // For ISO endpoint set correct odd/even bit for next frame.
+    if ((in_ep[epnum].DIEPCTL & USB_OTG_DIEPCTL_EPTYP) == USB_OTG_DIEPCTL_EPTYP_0)
+    {
+      // Take odd/even bit from frame counter.
+      uint32_t const now_odd_frame = (dev->DSTS & (1u << USB_OTG_DSTS_FNSOF_Pos));
+      in_ep[epnum].DIEPCTL |= (now_odd_frame ? USB_OTG_DIEPCTL_SD0PID_SEVNFRM_Msk : USB_OTG_DIEPCTL_SODDFRM_Msk);
+    }
     // Enable fifo empty interrupt only if there are something to put in the fifo.
     if(total_bytes != 0) {
       dev->DIEPEMPMSK |= (1 << epnum);
