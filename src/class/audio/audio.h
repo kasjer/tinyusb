@@ -89,6 +89,58 @@ typedef enum
   AUDIO_CS_INTERFACE_SAMPLE_RATE_CONVERTER = 0x0D,
 } audio_cs_interface_subtype_t;
 
+typedef enum
+{
+  AUDIO_TT_USB_UNDEFINED                  = 0x0100,
+  AUDIO_TT_USB_STREAMING                  = 0x0101,
+  AUDIO_TT_USB_VENDOR_SPECIFIC            = 0x01FF,
+
+  AUDIO_TT_INPUT_UNDEFINED                = 0x0200,
+  AUDIO_TT_MICROPHONE                     = 0x0201,
+  AUDIO_TT_DESKTOP_MICROPHONE             = 0x0202,
+  AUDIO_TT_PERSONAL_MICROPHONE            = 0x0203,
+  AUDIO_TT_OMNI_DIRECTIONAL_MICROPHONE    = 0x0204,
+  AUDIO_TT_MICROPHONE_ARRAY               = 0x0205,
+  AUDIO_TT_PROCESSING_MICROPHONE_ARRAY    = 0x0206,
+
+  AUDIO_TT_OUTPUT_UNDEFINED               = 0x0300,
+  AUDIO_TT_SPEAKER                        = 0x0301,
+  AUDIO_TT_HEADPHONES                     = 0x0302,
+  AUDIO_TT_HEAD_MOUNTED_DISPLAY_AUDIO     = 0x0303,
+  AUDIO_TT_DESKTOP_SPEAKER                = 0x0304,
+  AUDIO_TT_ROOM_SPEAKER                   = 0x0305,
+  AUDIO_TT_COMMUNICATION_SPEAKER          = 0x0306,
+  AUDIO_TT_LOW_FREQUENCY_EFFECTS_SPEAKER  = 0x0307,
+} audio_terminal_type_t;
+
+typedef enum
+{
+  AUDIO_AS_AS_DESCRIPTOR_UNDEFINED = 0x00,
+  AUDIO_AS_AS_GENERAL              = 0x01,
+  AUDIO_AS_FORMAT_TYPE             = 0x02,
+  AUDIO_AS_ENCODER                 = 0x03,
+  AUDIO_AS_DECODER                 = 0x04,
+} audio_as_interface_subtype_t;
+
+typedef enum
+{
+  AUDIO_FT_FORMAT_TYPE_UNDEFINED = 0x00,
+  AUDIO_FT_FORMAT_TYPE_I         = 0x01,
+  AUDIO_FT_FORMAT_TYPE_II        = 0x02,
+  AUDIO_FT_FORMAT_TYPE_III       = 0x03,
+  AUDIO_FT_FORMAT_TYPE_IV        = 0x04,
+  AUDIO_FT_EXT_FORMAT_TYPE_I     = 0x81,
+  AUDIO_FT_EXT_FORMAT_TYPE_II    = 0x82,
+  AUDIO_FT_EXT_FORMAT_TYPE_III   = 0x83,
+} audio_format_type_t;
+
+#define AUDIO_DATA_FORMAT_TYPE_I_PCM        0x00000001u
+#define AUDIO_DATA_FORMAT_TYPE_I_PCM8       0x00000002u
+#define AUDIO_DATA_FORMAT_TYPE_I_IEEE_FLOAT 0x00000004u
+#define AUDIO_DATA_FORMAT_TYPE_I_ALAW       0x00000008u
+#define AUDIO_DATA_FORMAT_TYPE_I_MULAW      0x00000010u
+#define AUDIO_DATA_FORMAT_TYPE_I_RAW_DATA   0x80000000u
+
 /** @} */
 
 #ifdef __cplusplus
