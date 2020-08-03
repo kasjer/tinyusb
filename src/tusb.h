@@ -80,6 +80,10 @@
     #include "class/midi/midi_device.h"
   #endif
 
+  #if CFG_TUD_AUDIO
+    #include "class/audio/audio_device.h"
+  #endif
+
   #if CFG_TUD_VENDOR
     #include "class/vendor/vendor_device.h"
   #endif
