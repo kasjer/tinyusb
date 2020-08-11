@@ -131,17 +131,19 @@ static bool is_audio_streaming_itf(uint8_t const *p_desc)
   tusb_desc_interface_t const *desc_audio = (tusb_desc_interface_t const *)p_desc;
 
   TU_VERIFY(TUSB_CLASS_AUDIO         == desc_audio->bInterfaceClass    &&
-            AUDIO_SUBCLASS_STREAMING == desc_audio->bInterfaceSubClass &&
+            AUDIO_SUBCLASS_STREAMING == desc_audio->bInterfaceSubClass);
+  TU_VERIFY(AUDIO_PROTOCOL_V1        == desc_audio->bInterfaceProtocol ||
             AUDIO_PROTOCOL_V2        == desc_audio->bInterfaceProtocol);
   return true;
 }
 
 uint16_t audiod_open(uint8_t rhport, tusb_desc_interface_t const * desc_itf, uint16_t max_len)
 {
-  // 1st Interface is Audio Control v12
+  // 1st Interface is Audio Control
   TU_VERIFY(TUSB_CLASS_AUDIO       == desc_itf->bInterfaceClass    &&
-            AUDIO_SUBCLASS_CONTROL == desc_itf->bInterfaceSubClass &&
-            AUDIO_PROTOCOL_V2      == desc_itf->bInterfaceProtocol, 0);
+            AUDIO_SUBCLASS_CONTROL == desc_itf->bInterfaceSubClass);
+  TU_VERIFY(AUDIO_PROTOCOL_V1      == desc_itf->bInterfaceProtocol ||
+            AUDIO_PROTOCOL_V2      == desc_itf->bInterfaceProtocol);
 
   uint16_t drv_len = tu_desc_len(desc_itf);
   uint8_t const * p_desc = tu_desc_next(desc_itf);
@@ -358,6 +360,7 @@ bool audiod_control_request(uint8_t rhport, tusb_control_request_t const * reque
           if (itf->ep[req_alt].bEndpointAddress != 0)
           {
             TU_ASSERT(usbd_edpt_open(rhport, &itf->ep[req_alt]));
+            usbd_edpt_clear_stall(rhport, itf->ep[req_alt].bEndpointAddress);
             if (tu_edpt_dir(itf->ep[req_alt].bEndpointAddress) == TUSB_DIR_OUT)
             {
               // Prepare for incoming data
@@ -372,10 +375,10 @@ bool audiod_control_request(uint8_t rhport, tusb_control_request_t const * reque
           }
           else
           {
-
-            // TODO: close the endpoint pair
-            // For now pretend that we did, this should have no harm since host won't try to
-            // communicate with the endpoints again
+            if (itf->itf_alt != 0xFF) {
+              usbd_edpt_close(rhport, itf->ep[itf->itf_alt].bEndpointAddress);
+            }
+            itf->itf_alt = req_alt;
           }
 
           tud_control_status(rhport, request);
