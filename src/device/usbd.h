@@ -319,6 +319,40 @@ TU_ATTR_WEAK bool tud_vendor_control_complete_cb(uint8_t rhport, tusb_control_re
 
 
 //------------- Audio -------------//
+#define SOURCE_ID(n) (n)
+#define INPUT_ID(n) (n)
+#define UNIT_ID(n) (n)
+#define CLOCK_ID(n) (n)
+#define ASSOC_TERM_ID(n) (n)
+#define NR_OF_CHANNELS(n) (n)
+#define CHANEL_CFG(n) U32_TO_U8S_LE(n)
+#define STRIDX(ix) (ix)
+#define bmControls(n) U16_TO_U8S_LE(n)
+#define CFG_AUDIO1_DESC_LEN (8+9+9+12+9+9+9+7+11+9+7)
+#define TUD_AUDIO1_STEREO_MICROPHONE_DESCRIPTOR(_itfnum, _epin, _epsize, _interval, _bitrate) \
+  /* Interface Association */\
+  8, TUSB_DESC_INTERFACE_ASSOCIATION, _itfnum, 2, TUSB_CLASS_AUDIO, AUDIO_SUBCLASS_CONTROL, AUDIO_PROTOCOL_V1, 0,\
+  /* Audio Control Interface */\
+  9, TUSB_DESC_INTERFACE, _itfnum, 0, 0, TUSB_CLASS_AUDIO, AUDIO_SUBCLASS_CONTROL, 0, 0,\
+  /* Class-Specific AC Interface header descriptor */\
+  9, TUSB_DESC_CS_INTERFACE, AUDIO_CS_INTERFACE_HEADER, U16_TO_U8S_LE(0x100), U16_TO_U8S_LE(9+12+9), 1, _itfnum + 1,\
+  /* Input terminal descriptor */\
+  12, TUSB_DESC_CS_INTERFACE, AUDIO_CS_INTERFACE_INPUT_TERMINAL, UNIT_ID(1), U16_TO_U8S_LE(AUDIO_TT_OMNI_DIRECTIONAL_MICROPHONE), 0, 2, U16_TO_U8S_LE(3), 0, 0,\
+  /* Output terminal descriptor */\
+  9, TUSB_DESC_CS_INTERFACE, AUDIO_CS_INTERFACE_OUTPUT_TERMINAL, UNIT_ID(3), U16_TO_U8S_LE(AUDIO_TT_USB_STREAMING), 0, SOURCE_ID(1), 0,\
+  /* Audio Streaming Interface alternate 0 - 0 endpoints */\
+  9, TUSB_DESC_INTERFACE, _itfnum + 1, 0, 0, TUSB_CLASS_AUDIO, AUDIO_SUBCLASS_STREAMING, 0, 0,\
+  /* Audio Streaming Interface alternate 0 - 1 endpoint */\
+  9, TUSB_DESC_INTERFACE, _itfnum + 1, 1, 1, TUSB_CLASS_AUDIO, AUDIO_SUBCLASS_STREAMING, 0, 0,\
+  /* Class-Specific AS interface descriptor */\
+  7, TUSB_DESC_CS_INTERFACE, AUDIO_AS_AS_GENERAL, 3, 1, U16_TO_U8S_LE(AUDIO_DATA_FORMAT_TYPE_I_PCM),\
+  /* Type I Format Type Descriptor for 2 channels PCM 48kHz */\
+  11, TUSB_DESC_CS_INTERFACE, AUDIO_AS_FORMAT_TYPE, AUDIO_FT_FORMAT_TYPE_I, 2, 2, 16, 1, U32_B4_U8(_bitrate), U32_B3_U8(_bitrate), U32_B2_U8(_bitrate),\
+  /* ISO enpoint descriptor */\
+  9, TUSB_DESC_ENDPOINT, _epin, TUSB_XFER_ISOCHRONOUS + 4, U16_TO_U8S_LE(_epsize), _interval, 0, 0,\
+  /* Class-specific AS Isochronous Audio Data Endpoint Descriptor */\
+  7, TUSB_DESC_CS_ENDPOINT, 1, 0, 0, U16_TO_U8S_LE(0)\
+
 #define TUD_AUDIO2_DESC_HEAD_LEN (9 + 9 + 9 + 7)
 #define TUD_AUDIO2_DESC_HEAD(_itfnum,  _stridx, _numcables) \
   /* Audio Control (AC) Interface */\
