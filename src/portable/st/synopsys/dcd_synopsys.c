@@ -343,6 +343,45 @@ bool dcd_edpt_open (uint8_t rhport, tusb_desc_endpoint_t const * desc_edpt)
   return true;
 }
 
+/**
+ * Close an endpoint.
+ *
+ * This function may be called with interrupts enabled or disabled.
+ *
+ * This also clears transfers in progress, should there be any.
+ */
+void dcd_edpt_close (uint8_t rhport, uint8_t ep_addr)
+{
+  (void)rhport;
+  USB_OTG_DeviceTypeDef * dev = DEVICE_BASE;
+  USB_OTG_OUTEndpointTypeDef * out_ep = OUT_EP_BASE;
+  USB_OTG_INEndpointTypeDef * in_ep = IN_EP_BASE;
+  uint32_t const epnum = tu_edpt_number(ep_addr);
+  uint32_t const dir   = tu_edpt_dir(ep_addr);
+
+  if (dir == TUSB_DIR_IN)
+  {
+    // Stop transmitting packets and NAK IN xfers.
+    in_ep[epnum].DIEPCTL |= USB_OTG_DIEPCTL_SNAK;
+    while((in_ep[epnum].DIEPINT & USB_OTG_DIEPINT_INEPNE) == 0);
+
+    // Disable the endpoint.
+    in_ep[epnum].DIEPCTL |= USB_OTG_DIEPCTL_EPDIS;
+    while((in_ep[epnum].DIEPINT & USB_OTG_DIEPINT_EPDISD_Msk) == 0);
+    in_ep[epnum].DIEPINT = USB_OTG_DIEPINT_EPDISD;
+
+    // Flush the FIFO, and wait until we have confirmed it cleared.
+    USB_OTG_FS->GRSTCTL = USB_OTG_GRSTCTL_TXFFLSH | (epnum << USB_OTG_GRSTCTL_TXFNUM_Pos);
+    while((USB_OTG_FS->GRSTCTL & USB_OTG_GRSTCTL_TXFFLSH_Msk) != 0);
+    in_ep[epnum].DIEPTSIZ = 0;
+  }
+  else
+  {
+    out_ep[epnum].DOEPCTL = (out_ep[epnum].DOEPCTL & ~(USB_OTG_DOEPCTL_EPENA_Msk)) | USB_OTG_DOEPCTL_EPDIS_Msk;
+    dev->DAINTMSK |= (1 << (USB_OTG_DAINTMSK_OEPM_Pos + epnum));
+  }
+}
+
 bool dcd_edpt_xfer (uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t total_bytes)
 {
   (void) rhport;
