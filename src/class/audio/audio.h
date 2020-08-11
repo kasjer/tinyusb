@@ -54,6 +54,26 @@ typedef enum
   AUDIO_PROTOCOL_V3                   = 0x30, ///< Version 3.0
 } audio_protocol_type_t;
 
+typedef enum
+{
+  AUDIO1_CS_REQUEST_CODE_UNDEFINED    = 0x00,
+  AUDIO1_CS_REQUEST_SET_CUR           = 0x01,
+  AUDIO1_CS_REQUEST_GET_CUR           = 0x81,
+  AUDIO1_CS_REQUEST_SET_MIN           = 0x02,
+  AUDIO1_CS_REQUEST_GET_MIN           = 0x82,
+  AUDIO1_CS_REQUEST_SET_MAX           = 0x03,
+  AUDIO1_CS_REQUEST_GET_MAX           = 0x83,
+  AUDIO1_CS_REQUEST_SET_RES           = 0x04,
+  AUDIO1_CS_REQUEST_GET_RES           = 0x84,
+  AUDIO1_CS_REQUEST_SET_MEM           = 0x05,
+  AUDIO1_CS_REQUEST_GET_MEM           = 0x85,
+  AUDIO1_CS_REQUEST_GET_STAT          = 0xFF,
+
+  AUDIO2_CS_REQUEST_CODE_UNDEFINED    = 0x00,
+  AUDIO2_CS_REQUEST_CUR               = 0x01,
+  AUDIO2_CS_REQUEST_RANGE             = 0x02,
+} audio_class_specific_request_code_t;
+
 /// Audio Function Category Codes
 typedef enum
 {
@@ -133,6 +153,28 @@ typedef enum
   AUDIO_FT_EXT_FORMAT_TYPE_II    = 0x82,
   AUDIO_FT_EXT_FORMAT_TYPE_III   = 0x83,
 } audio_format_type_t;
+
+typedef enum
+{
+  AUDIO1_FUCS_FU_CONTROL_UNDEFINED        = 0x00,
+  AUDIO1_FUCS_MUTE_CONTROL                = 0x01,
+  AUDIO1_FUCS_VOLUME_CONTROL              = 0x02,
+  AUDIO1_FUCS_BASS_CONTROL                = 0x03,
+  AUDIO1_FUCS_MID_CONTROL                 = 0x04,
+  AUDIO1_FUCS_TREBLE_CONTROL              = 0x05,
+  AUDIO1_FUCS_GRAPHIC_EQUALIZER_CONTROL   = 0x06,
+  AUDIO1_FUCS_AUTOMATIC_GAIN_CONTROL      = 0x07,
+  AUDIO1_FUCS_DELAY_CONTROL               = 0x08,
+  AUDIO1_FUCS_BASS_BOOST_CONTROL          = 0x09,
+  AUDIO1_FUCS_LOUDNESS_CONTROL            = 0x0A,
+} audio1_feature_unit_control_selector_t;
+
+typedef enum
+{
+  AUDIO2_CSCS_CONTROL_UNDEFINED           = 0x00,
+  AUDIO2_CSCS_SAM_FREQ_CONTROL            = 0x01,
+  AUDIO2_CSCS_CLOCK_VALID_CONTROL         = 0x02,
+} audio2_clock_source_unit_control_selector_t;
 
 #define AUDIO_DATA_FORMAT_TYPE_I_PCM        0x00000001u
 #define AUDIO_DATA_FORMAT_TYPE_I_PCM8       0x00000002u

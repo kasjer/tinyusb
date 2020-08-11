@@ -301,7 +301,7 @@ static bool handle_ac_interface_request(uint8_t rhport, tusb_control_request_t c
 //  find_audio_unit(id);
   if (id == 4)
   {
-    if (request->bRequest == 2)
+    if (request->bRequest == AUDIO2_CS_REQUEST_RANGE)
     {
       response_buf_ix = 0;
       reponse_buf_put_v16(1);
@@ -310,7 +310,7 @@ static bool handle_ac_interface_request(uint8_t rhport, tusb_control_request_t c
       reponse_buf_put_v32(0);
       return tud_control_xfer(rhport, request, response_buf, response_buf_ix);
     }
-    else if (request->bRequest == 1)
+    else if (request->bRequest == AUDIO2_CS_REQUEST_CUR)
     {
       response_buf_ix = 0;
       reponse_buf_put_v32(48000);
@@ -392,7 +392,7 @@ bool audiod_control_request(uint8_t rhport, tusb_control_request_t const * reque
       switch (request->bmRequestType_bit.recipient)
       {
         // Interface request
-        case 1:
+        case TUSB_REQ_RCPT_INTERFACE:
           if ((uint8_t)request->wIndex == _audio.ac_itf_num)
           {
             return handle_ac_interface_request(rhport, request);
@@ -402,7 +402,7 @@ bool audiod_control_request(uint8_t rhport, tusb_control_request_t const * reque
             return handle_as_interface_request(rhport, request);
           }
           break;
-        case 2: // ISO endpoint request
+        case TUSB_REQ_RCPT_ENDPOINT: // ISO endpoint request
           return false;
           break;
       }
